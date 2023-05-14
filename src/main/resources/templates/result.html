@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="main_layout.html">
+<head>
+    <meta charset="UTF-8">
+    <title>Результат</title>
+    <link rel="stylesheet" type="text/css" href="/css/bootstrap.css">
+</head>
+<body>
+<div layout:fragment="main_content">
+
+    <div class="container">
+        <h3 class="text-light">Результат</h3>
+        <div class="input-group mb-3">
+            <input type="date" id="startdate">
+            <input type="date" id="enddate">
+        </div>
+
+        <div style="height: 500px; overflow: auto">
+        <table class="table text-light">
+            <thead>
+            <tr>
+                <th scope="col" class="col-3">Дата</th>
+                <th scope="col" class="col-1">Карта</th>
+                <th scope="col" class="col-1">Каспи/нал</th>
+                <th scope="col" class="col-1">Продукты</th>
+                <th scope="col" class="col-1">Остатки</th>
+                <th scope="col" class="col-1">Налоги</th>
+                <th scope="col" class="col-1">Аренда</th>
+                <th scope="col" class="col-1">Коммунальные</th>
+                <th scope="col" class="col-1">Зарплата</th>
+                <th scope="col" class="col-1">Прибыль</th>
+            </tr>
+            </thead>
+            <tbody id="table">
+            </tbody>
+        </table>
+    </div>
+    </div>
+    <script type="text/javascript">
+        document.getElementById("enddate").addEventListener('input', getResult)
+        function getResult() {
+            const request = new XMLHttpRequest();
+            request.open("POST", "/getresult", true);
+            request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+            let dates=
+            JSON.stringify({
+                "startdate":startdate.value,
+                "enddate":enddate.value
+            })
+            if(startdate.value!="" && enddate.value!=""){
+                request.send(dates)
+            }
+            request.onreadystatechange = function () {
+                if (request.readyState === request.DONE) {
+                    if (request.status === 200) {
+                        let reply = JSON.parse(request.responseText)
+                        table.innerHTML=""
+                        reply.forEach((e) => {
+                            table.innerHTML += `<tr><td> ${e.date} </td>
+                                                <td> ${Math.round(e.dohodCard)} </td>
+                                                <td> ${Math.round(e.dohodKaspiNal)} </td>
+                                                <td> ${Math.round(e.producty)} </td>
+                                                <td> ${Math.round(e.ostatki)} </td>
+                                                <td> ${Math.round(e.tax)} </td>
+                                                <td> ${Math.round(e.arenda)} </td>
+                                                <td> ${Math.round(e.kommunalnye)} </td>
+                                                <td> ${Math.round(e.zarplata)} </td>
+                                                <td> ${Math.round(e.profit)} </td></tr>`
+
+                        })
+                    }
+                }
+            }
+        }
+    </script>
+</div>
+</body>
+</html>

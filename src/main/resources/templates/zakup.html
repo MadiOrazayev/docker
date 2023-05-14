@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="main_layout.html">
+<head>
+    <meta charset="UTF-8">
+    <title>Закуп</title>
+    <link rel="stylesheet" type="text/css" href="/css/bootstrap.css">
+</head>
+<body onload="getProducts()">
+<div layout:fragment="main_content">
+    <div class="container">
+        <h3 class="text-light">Закуп</h3>
+        <div class="input-group mb-3">
+            <input type="date" id="date">
+        </div>
+        <div class="input-group mb-3">
+            <input type="text" id="productName" class="form-control">
+            <a type="button" id="addproduct" class="btn btn-outline-primary">Добавить</a>
+            <a type="button" id="zakupit" class="btn btn-outline-success">Закупить</a>
+        </div>
+        <div style="height: 500px; overflow: auto">
+            <table class="table text-light">
+                <thead>
+                <tr>
+                    <th scope="col" class="col-10">Продукт</th>
+                    <th scope="col" class="col-10">Дефицит(кг)</th>
+                    <th scope="col" class="col-1">Количество(кг)</th>
+                    <th scope="col" class="col-1">Цена</th>
+                </tr>
+                </thead>
+                <tbody id="table">
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script type="text/javascript">
+        document.getElementById("date").addEventListener('input', getProducts)
+
+        function getProducts() {
+            const request = new XMLHttpRequest();
+            request.open("POST", "/sklad/getproducts", true);
+            request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+            if (date.value == "") {
+                request.send("1900-01-01")
+            } else {
+                request.send(date.value)
+            }
+            request.onreadystatechange = function () {
+                if (request.readyState === request.DONE) {
+                    if (request.status === 200) {
+                        let reply = JSON.parse(request.responseText)
+                        table.innerHTML = ""
+                        reply.forEach((e) => {
+                            let deficit = e.productLeft - e.productDeficit
+                            if (deficit >= 0) {
+                                deficit = 0
+                            }
+                            table.innerHTML += `<tr>
+                                                <td> ${e.productName} </td>
+                                                <td> ${deficit} </td>
+                                                <td><input type="number" value=0></td>
+                                                <td><input type="number" value=${e.productAvPrice}></td>
+                                                </tr>`
+
+                        })
+                    }
+                }
+            }
+        }
+
+        document.getElementById("addproduct").addEventListener('click', function () {
+            if (productName.value != "") {
+                const request = new XMLHttpRequest();
+                request.open("POST", "/sklad/addproduct", true);
+                request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+                request.send(productName.value);
+                request.onreadystatechange = function () {
+                    if (request.readyState === request.DONE) {
+                        if (request.status === 200) {
+                            productName.value = ""
+                            getProducts()
+                        }
+                    }
+                }
+            }
+        })
+        document.getElementById("zakupit").addEventListener('click', function () {
+            let zakup = "["
+            document.getElementById("table").querySelectorAll("tr").forEach((row) => {
+                if (row.cells[2].getElementsByTagName('input')[0].value != ""
+                    && row.cells[2].getElementsByTagName('input')[0].value > 0) {
+                    if (row.cells[3].getElementsByTagName('input')[0].value != ""
+                        && row.cells[3].getElementsByTagName('input')[0].value > 0) {
+                        zakup += "{"
+                            + "\"nazvanieProducta\":" + "\"" + row.cells[0].innerText + "\"" + ","
+                            + "\"kolichestvoProducta\":" + row.cells[2].getElementsByTagName('input')[0].value + ","
+                            + "\"cenaProducta\":" + row.cells[3].getElementsByTagName('input')[0].value
+                            + "},"
+                    }
+                }
+            })
+            zakup = zakup.slice(0, -1)
+            zakup += "]"
+            const request = new XMLHttpRequest();
+            request.open("POST", "/zakup/zakupit", true);
+            request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+            request.send(zakup);
+            request.onreadystatechange = function () {
+                if (request.readyState === request.DONE) {
+                    if (request.status === 200) {
+                        alert(request.responseText)
+                        getProducts()
+                    }
+                }
+            }
+        })
+    </script>
+</div>
+</body>
+</html>

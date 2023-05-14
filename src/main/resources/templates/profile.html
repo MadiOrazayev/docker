@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="main_layout.html">
+<head>
+    <meta charset="UTF-8">
+    <title>Меню</title>
+    <link rel="stylesheet" type="text/css" href="/css/bootstrap.css">
+</head>
+<body>
+<div layout:fragment="main_content">
+    <div class="container">
+        <h3 class="text-light">Добро пожаловать <span th:text="${#authentication.principal.sotrudnikName}"
+                                                      id="sotrudnik"></span></h3>
+        <p><a class="link-opacity-100" href="#" data-bs-toggle="modal" data-bs-target="#requestmodal"
+              aria-current="page">Запросить оплату</a></p>
+        <h6 class="text-light">Должность: <span th:text="${#authentication.principal.sotrudnikPosition}"></span></h6>
+
+        <h6 class="text-light">Телефон: <span id="Contact"></span>
+            <a class="link-opacity-100" href="#" data-bs-toggle="modal" data-bs-target="#detailsmodal"
+               aria-current="page">изменить</a></h6>
+
+        <h6 class="text-light">Номер Каспи: <span id="sotrudnikKaspi"></span>
+            <a class="link-opacity-100" href="#" data-bs-toggle="modal" data-bs-target="#detailsmodal"
+               aria-current="page">изменить</a></h6>
+
+        <h6 class="text-light">Оплачено зарплата: <span id="sotrudnikPayedBasic"></span></h6>
+        <h6 class="text-light">Оплачено дополнительно: <span id="sotrudnikPayedExtra"></span></h6>
+        <h6 class="text-light">К оплате зарплата: <span id="sotrudnikToBePayedBasic"></span></h6>
+        <h6 class="text-light">К оплате дополнительно: <span id="sotrudnikToBePayedExtra"></span></h6>
+
+        <div style="height: 500px; overflow: auto">
+            <table class="table text-light">
+                <thead>
+                <tr>
+                    <th scope="col" class="col-4">Дата</th>
+                    <th scope="col" class="col-1">Зарлпата</th>
+                    <th scope="col" class="col-2">Статус зарплты</th>
+                    <th scope="col" class="col-1">Дполнительно</th>
+                    <th scope="col" class="col-2">Статус доп выплат</th>
+                    <th scope="col" class="col-2">Комментарий</th>
+                </tr>
+                </thead>
+                <tbody id="table">
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Modal request payment-->
+        <div class="modal fade" id="requestmodal" tabindex="-1" aria-labelledby="exampleModalLabel"
+             aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5">Запросить оплату</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="input-group mb-3">
+                            <span class="input-group-text" id="label0">Дата</span>
+                            <input class="form-control" type="date" id="date" aria-describedby="label0">
+                        </div>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text" id="label1">Зарплата</span>
+                            <input class="form-control" type="number" id="basic" aria-describedby="label1">
+                        </div>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text" id="label2">Дополнительно</span>
+                            <input class="form-control" type="number" id="extra" aria-describedby="label2">
+                        </div>
+                        <div class="input-group mb-3">
+                            <textarea class="form-control" id="comment" placeholder="Комментарий"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary" onclick="requestPayment()">Запросить</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal contact details-->
+        <div class="modal fade" id="detailsmodal" tabindex="-1" aria-labelledby="exampleModalLabel"
+             aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5">Запросить оплату</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="input-group mb-3">
+                            <span class="input-group-text" id="label3">Контактный номер</span>
+                            <input class="form-control" type="text" id="maincontact" aria-describedby="label3">
+                        </div>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text" id="label4">Номер Каспи</span>
+                            <input class="form-control" type="text" id="kaspicontact" aria-describedby="label4">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary" onclick="changeContact()">Изменить</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <script type="text/javascript">
+            getPayRequests()
+            getSotrudnikPayments()
+
+        function getSotrudnikPayments() {
+            const request = new XMLHttpRequest();
+            request.open("POST", "/getsotrudnikpayments", true);
+            request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+            request.send(sotrudnik.textContent)
+            request.onreadystatechange = function () {
+                if (request.readyState === request.DONE) {
+                    if (request.status === 200) {
+                        let reply = JSON.parse(request.responseText)
+                        sotrudnikPayedBasic.innerText = reply.sotrudnikPayedBasic
+                        sotrudnikPayedExtra.innerText = reply.sotrudnikPayedExtra
+                        sotrudnikToBePayedBasic.innerText = reply.sotrudnikToBePayedBasic
+                        sotrudnikToBePayedExtra.innerText = reply.sotrudnikToBePayedExtra
+                        Contact.innerText=reply.sotrudnikContact
+                        sotrudnikKaspi.innerText=reply.Kaspi
+                        maincontact.value=reply.sotrudnikContact
+                        kaspicontact.value=reply.Kaspi
+                    }
+                }
+            }
+        }
+
+        function getPayRequests() {
+            const request = new XMLHttpRequest();
+            request.open("POST", "/getpayrequests", true);
+            request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+            request.send(sotrudnik.textContent)
+            request.onreadystatechange = function () {
+                if (request.readyState === request.DONE) {
+                    if (request.status === 200) {
+                        let reply = JSON.parse(request.responseText)
+                        table.innerHTML = ""
+                        reply.forEach((e) => {
+                            let basicstatus="<td class='text-success'>выплачено</td>"
+                            let extrastatus="<td class='text-success'>выплачено</td>"
+                            if(e.sotrudnikPaymentBasicStatus=="requested"){
+                                basicstatus="<td class='text-danger'>запрошено</td>"
+                            }
+                            if(e.sotrudnikPaymentExtraStatus=="requested"){
+                                extrastatus="<td class='text-danger'>запрошено</td>"
+                            }
+
+                            table.innerHTML += `<tr><td> ${e.date} </td>
+                                                <td> ${e.sotrudnikPaymentBasic} </td>`
+                                                +basicstatus
+                                                +`<td> ${e.sotrudnikPaymentExtra} </td>`
+                                                +extrastatus
+                                                +`<td> ${e.comment} </td></tr>`
+
+                        })
+                    }
+                }
+            }
+        }
+
+        function requestPayment() {
+            if (basic.value == "") {
+                basic.value = 0
+            }
+            if (extra.value == "") {
+                extra.value = 0
+            }
+            if (sotrudnik.value != "" && date.value != "") {
+                const request = new XMLHttpRequest();
+                request.open("POST", "/addpayment", true);
+                request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+                request.send(JSON.stringify({
+                    "sotrudnikName": sotrudnik.textContent,
+                    "date": date.value,
+                    "sotrudnikPaymentBasic": basic.value,
+                    "sotrudnikPaymentExtra": extra.value,
+                    "comment": comment.value
+                }));
+                request.onreadystatechange = function () {
+                    if (request.readyState === request.DONE) {
+                        if (request.status === 200) {
+                            location.reload()
+                        }
+                    }
+                }
+            }
+        }
+
+            function changeContact() {
+                if (maincontact.value != "") {
+                    if (kaspicontact.value != "") {
+                        const request = new XMLHttpRequest();
+                        request.open("POST", "/editsotrudnik", true);
+                        request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+                        request.send(JSON.stringify({
+                            "sotrudnikName": sotrudnik.textContent,
+                            "sotrudnikContact": maincontact.value,
+                            "kaspiContact": kaspicontact.value
+                        }));
+                        request.onreadystatechange = function () {
+                            if (request.readyState === request.DONE) {
+                                if (request.status === 200) {
+                                    location.reload()
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+    </script>
+</div>
+</body>
+</html>

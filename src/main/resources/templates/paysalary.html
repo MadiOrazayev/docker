@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="main_layout.html">
+<head>
+    <meta charset="UTF-8">
+    <title>Меню</title>
+    <link rel="stylesheet" type="text/css" href="/css/bootstrap.css">
+</head>
+<body>
+<div layout:fragment="main_content">
+    <div class="container">
+        <h3 class="text-light">Добро пожаловать <span th:text="${#authentication.principal.sotrudnikName}"
+                                                      id="sotrudnik"></span></h3>
+        <p><select class="form-select" id="sotrudnikoplata">
+        </select></p>
+
+        <h6 class="text-light">Должность: <span id="sotrudnikpos"></span></h6>
+
+        <h6 class="text-light">Телефон: <span id="Contact"></span></h6>
+
+        <h6 class="text-light">Номер Каспи: <span id="sotrudnikKaspi"></span></h6>
+
+        <h6 class="text-light">Оплачено зарплата: <span id="sotrudnikPayedBasic"></span></h6>
+        <h6 class="text-light">Оплачено дополнительно: <span id="sotrudnikPayedExtra"></span></h6>
+        <h6 class="text-light">Нужно оплатить зарплата: <span id="sotrudnikToBePayedBasic"></span></h6>
+        <h6 class="text-light">Нужно оплатить дополнительно: <span id="sotrudnikToBePayedExtra"></span></h6>
+        <h6 class="text-light">Оплачу зарплата: <span id="oplachuBasic"></span></h6>
+        <h6 class="text-light">Оплачу дополнительно: <span id="oplachuExtra"></span></h6>
+        <a class="btn btn-success" onclick="pay()">Оплатить</a>
+        <div style="height: 500px; overflow: auto">
+            <table class="table text-light">
+                <thead>
+                <tr>
+                    <th scope="col" class="col-4">Дата</th>
+                    <th scope="col" class="col-1">Зарлпата</th>
+                    <th scope="col" class="col-2">Статус зарплты</th>
+                    <th scope="col" class="col-1">Дполнительно</th>
+                    <th scope="col" class="col-2">Статус доп выплат</th>
+                    <th scope="col" class="col-2">Комментарий</th>
+                </tr>
+                </thead>
+                <tbody id="table">
+                </tbody>
+            </table>
+        </div>
+
+
+        <script type="text/javascript">
+            getSotrudnikList()
+            document.getElementById("sotrudnikoplata").addEventListener('input', function () {
+                getPayRequests()
+                getSotrudnikPayments()
+            })
+
+            function pay() {
+                const request = new XMLHttpRequest();
+                request.open("POST", "/pay", true);
+                request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+                let payments = []
+                document.getElementById("table").querySelectorAll('tr').forEach((row) => {
+                    let basicstatus=row.cells[2].innerText
+                    let extrastatus=row.cells[4].innerText
+                    let checkBid="checkboxBasic" + row.cells[5].getElementsByTagName('input')[0].id
+                    if(row.cells[2].innerText=="запрошено "){
+                        if (document.getElementById(checkBid).checked == true) {
+                            basicstatus="payed"
+                        }
+                    }
+                    let checkEid="checkboxExtra" + row.cells[5].getElementsByTagName('input')[0].id
+                    if(row.cells[4].innerText=="запрошено "){
+                        if (document.getElementById(checkEid).checked == true) {
+                            extrastatus="payed"
+                        }
+                    }
+                    let payment = {
+                        "paymentid": row.cells[5].getElementsByTagName('input')[0].id,
+                        "basic": basicstatus,
+                        "extra": extrastatus
+                    }
+                    payments.push(payment)
+                })
+                request.send(JSON.stringify(payments))
+                request.onreadystatechange = function () {
+                    if (request.readyState === request.DONE) {
+                        if (request.status === 200) {
+                            getPayRequests()
+                            getSotrudnikPayments()
+                        }
+                    }
+                }
+            }
+
+            function getSotrudnikList() {
+                sotrudnikoplata.innerHTML = ""
+                const request = new XMLHttpRequest();
+                request.open("POST", "/getsotrudniklist", true);
+                request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+                request.send();
+                request.onreadystatechange = function () {
+                    if (request.readyState === request.DONE) {
+                        if (request.status === 200) {
+                            sotrudnikoplata.add(new Option(""))
+                            let reply = JSON.parse(request.responseText)
+                            reply.forEach(option => sotrudnikoplata.add(new Option(option.sotrudnikName)))
+                        }
+                    }
+                }
+            }
+
+            function getSotrudnikPayments() {
+                const request = new XMLHttpRequest();
+                request.open("POST", "/getsotrudnikpayments", true);
+                request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+                request.send(sotrudnikoplata.value)
+                request.onreadystatechange = function () {
+                    if (request.readyState === request.DONE) {
+                        if (request.status === 200) {
+                            let reply = JSON.parse(request.responseText)
+                            sotrudnikPayedBasic.innerText = reply.sotrudnikPayedBasic
+                            sotrudnikPayedExtra.innerText = reply.sotrudnikPayedExtra
+                            sotrudnikToBePayedBasic.innerText = reply.sotrudnikToBePayedBasic
+                            sotrudnikToBePayedExtra.innerText = reply.sotrudnikToBePayedExtra
+                            Contact.innerText = reply.sotrudnikContact
+                            sotrudnikKaspi.innerText = reply.Kaspi
+                            sotrudnikpos.innerText = reply.sotrudnikPosition
+                            oplachuBasic.innerText = 0
+                            oplachuExtra.innerText = 0
+                        }
+                    }
+                }
+            }
+
+            function getPayRequests() {
+                const request = new XMLHttpRequest();
+                request.open("POST", "/getpayrequests", true);
+                request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+                request.send(sotrudnikoplata.value)
+                request.onreadystatechange = function () {
+                    if (request.readyState === request.DONE) {
+                        if (request.status === 200) {
+                            let reply = JSON.parse(request.responseText)
+                            table.innerHTML = ""
+                            reply.forEach((e) => {
+                                let checkboxBasic = "checkboxBasic" + e.paymentID
+                                let checkboxExtra = "checkboxExtra" + e.paymentID
+                                basicstatus = `<td class='text-success'>выплачено</td>`
+                                let extrastatus = `<td class='text-success'>выплачено</td>`
+                                if (e.sotrudnikPaymentBasicStatus == "requested") {
+                                    basicstatus = `<td class='text-danger'>запрошено <input class='form-check-input'
+                                    + type='checkbox' id='${checkboxBasic}'
+                                    + value='${e.sotrudnikPaymentBasic}'
+                                    + onclick='calcBasic(id)'></td>`
+                                }
+                                if (e.sotrudnikPaymentExtraStatus == "requested") {
+                                    extrastatus = `<td class='text-danger'>запрошено <input class='form-check-input'
+                                    + type='checkbox' id='${checkboxExtra}'
+                                    + value='${e.sotrudnikPaymentExtra}'
+                                    + onclick='calcExtra(id)'></td>`
+                                }
+
+                                table.innerHTML += `<tr>
+                                                <td> ${e.date} </td>
+                                                <td> ${e.sotrudnikPaymentBasic} </td>`
+                                    + basicstatus
+                                    + `<td> ${e.sotrudnikPaymentExtra} </td>`
+                                    + extrastatus
+                                    + `<td> ${e.comment} <input type="hidden" id="${e.paymentID}"></td></tr>`
+                            })
+                        }
+                    }
+                }
+            }
+
+            function calcBasic(id) {
+                let opl = parseInt(oplachuBasic.innerText)
+                if (document.getElementById(id).checked == true) {
+                    opl += parseInt(document.getElementById(id).value)
+                    oplachuBasic.innerText = opl
+                }
+                if (document.getElementById(id).checked == false) {
+                    opl -= parseInt(document.getElementById(id).value)
+                    oplachuBasic.innerText = opl
+                }
+            }
+
+            function calcExtra(id) {
+                let opl = parseInt(oplachuExtra.innerText)
+                if (document.getElementById(id).checked == true) {
+                    opl += parseInt(document.getElementById(id).value)
+                    oplachuExtra.innerText = opl
+                }
+                if (document.getElementById(id).checked == false) {
+                    opl -= parseInt(document.getElementById(id).value)
+                    oplachuExtra.innerText = opl
+                }
+            }
+        </script>
+    </div>
+</div>
+</body>
+</html>

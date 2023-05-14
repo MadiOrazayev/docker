@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="main_layout.html">
+<head>
+    <meta charset="UTF-8">
+    <title>Склад</title>
+    <link rel="stylesheet" type="text/css" href="/css/bootstrap.css">
+</head>
+<body onload="getProducts()">
+<div layout:fragment="main_content">
+
+    <div class="container">
+        <h3 class="text-light">Склад</h3>
+        <div class="input-group mb-3">
+            <input type="date" id="date">
+        </div>
+        <div style="height: 500px; overflow: auto">
+        <table class="table text-light">
+            <thead>
+            <tr>
+                <th scope="col" class="col-8">Продукт</th>
+                <th scope="col" class="col-1">Остаток(кг)</th>
+                <th scope="col" class="col-1">Требуется(кг)</th>
+                <th scope="col" class="col-1">Дефицит</th>
+                <th scope="col" class="col-1">Ср.Цена</th>
+            </tr>
+            </thead>
+            <tbody id="table">
+            </tbody>
+        </table>
+    </div>
+    </div>
+    <script type="text/javascript">
+        document.getElementById("date").addEventListener('input', getProducts)
+        function getProducts() {
+            const request = new XMLHttpRequest();
+            request.open("POST", "/sklad/getproducts", true);
+            request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+            if(date.value==""){
+                request.send("1900-01-01")
+            }else{
+                request.send(date.value)
+            }
+            request.onreadystatechange = function () {
+                if (request.readyState === request.DONE) {
+                    if (request.status === 200) {
+                        let reply = JSON.parse(request.responseText)
+                        table.innerHTML=""
+                        reply.forEach((e) => {
+                            let deficit = e.productLeft - e.productDeficit
+                            if(deficit>=0){deficit=0}
+                            table.innerHTML += `<tr><td> ${e.productName} </td>
+                                                <td> ${e.productLeft} </td>
+                                                <td> ${e.productDeficit} </td>
+                                                <td> ${deficit} </td>
+                                                <td> ${e.productAvPrice} </td></tr>`
+
+                        })
+                    }
+                }
+            }
+        }
+    </script>
+</div>
+</body>
+</html>

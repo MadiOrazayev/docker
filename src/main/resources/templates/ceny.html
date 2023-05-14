@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="main_layout.html">
+<head>
+    <meta charset="UTF-8">
+    <title>Калькуляция</title>
+    <link rel="stylesheet" type="text/css" href="/css/bootstrap.css">
+</head>
+<body onload="getPrices()">
+<div layout:fragment="main_content">
+    <div class="container">
+        <h3 class="text-light">Цены</h3>
+        <div class="input-group mb-3">
+            <a type="button" id="save" class="btn btn-outline-primary">Сохранить</a>
+        </div>
+        <div style="height: 500px; overflow: auto">
+            <table class="table text-light">
+                <thead>
+                <tr>
+                    <th scope="col" class="col-10">Блюдо</th>
+                    <th scope="col" class="col-1">Себестоимость</th>
+                    <th scope="col" class="col-1">Цена</th>
+                </tr>
+                </thead>
+                <tbody id="table">
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script type="text/javascript">
+        function getPrices() {
+            const request = new XMLHttpRequest();
+            request.open("GET", "/ceny/posmotret", true);
+            request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+            request.send();
+            request.onreadystatechange = function () {
+                if (request.readyState === request.DONE) {
+                    if (request.status === 200) {
+                        let ceny = JSON.parse(request.responseText)
+                        table.innerHTML = ""
+                        ceny.forEach((blyudo) => {
+                            table.innerHTML += `<tr><td> ${blyudo.nazvanieBlyuda} </td>
+                                                <td> ${blyudo.sebestoimostBlyuda} </td>
+                                                <td><input type="number" value=${blyudo.cenaBlyuda}></td>`
+
+                        })
+                    }
+                }
+            }
+        }
+
+        document.getElementById("save").addEventListener('click', function () {
+            let ceny = "["
+            document.getElementById("table").querySelectorAll("tr").forEach((row) => {
+                ceny += "{"
+                    + "\"nazvanieBlyuda\":" + "\"" + row.cells[0].innerText + "\"" + ","
+                    + "\"cenaBlyuda\":" + row.cells[2].getElementsByTagName('input')[0].value
+                    + "},"
+            })
+            ceny=ceny.slice(0,-1)
+            ceny += "]"
+            const request = new XMLHttpRequest();
+            request.open("POST", "/ceny/sohranit", true);
+            request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+            request.send(ceny);
+            request.onreadystatechange = function () {
+                if (request.readyState === request.DONE) {
+                    if (request.status === 200) {
+                        alert(request.responseText)
+                        getPrices()
+                    }
+                }
+            }
+        })
+    </script>
+</div>
+</body>
+</html>

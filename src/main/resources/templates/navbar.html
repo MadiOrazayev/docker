@@ -1,0 +1,93 @@
+<html lang="en"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<nav class="navbar navbar-expand-lg bg-dark" data-bs-theme="dark">
+  <div class="container-fluid">
+    <a class="navbar-brand" th:href="@{'/'}">TCG</a>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a sec:authorize="isAuthenticated()" class="nav-link active" th:href="@{'/profile'}">
+            <span th:text="${#authentication.principal.sotrudnikName}"></span></a>
+        </li>
+        <li class="nav-item">
+          <a sec:authorize="hasRole('ROLE_ADMIN')" class="nav-link active" data-bs-toggle="modal" data-bs-target="#balancemodal" aria-current="page" href="#">Баланс</a>
+        </li>
+        <li class="nav-item">
+          <a sec:authorize="hasAnyRole('ROLE_ADMIN','ROLE_CASHIER')" class="nav-link active" th:href="@{'/sales'}">Продажи</a>
+        </li>
+
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" sec:authorize="hasAnyRole('ROLE_ADMIN','ROLE_COOK')" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Меню
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" th:href="@{'/blyuda'}">Калькуляция</a></li>
+            <li><a sec:authorize="hasAnyRole('ROLE_ADMIN')" class="dropdown-item" th:href="@{'/ceny'}">Цены</a></li>
+            <li><a class="dropdown-item" th:href="@{'/menuplan'}">Меню план</a></li>
+            <li><a class="dropdown-item" th:href="@{'/menufact'}">Меню факт</a></li>
+          </ul>
+        </li>
+
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" sec:authorize="hasAnyRole('ROLE_ADMIN','ROLE_ZAKUP')" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Продукты
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" th:href="@{'/sklad'}">Склад</a></li>
+            <li><a class="dropdown-item" th:href="@{'/zakup'}">Закуп</a></li>
+          </ul>
+        </li>
+
+        <li class="nav-item">
+          <a sec:authorize="hasAnyRole('ROLE_ADMIN')" class="nav-link active" th:href="@{'/result'}">Результат</a>
+        </li>
+        <li class="nav-item">
+          <a sec:authorize="hasAnyRole('ROLE_ADMIN')" class="nav-link active" th:href="@{'/paysalary'}">Выплата</a>
+        </li>
+        <li class="nav-item">
+          <a sec:authorize="isAnonymous()" class="nav-link active" th:href="@{'/sign-in'}">Войти</a>
+        </li>
+        <li class="nav-item">
+          <a sec:authorize="isAuthenticated()" class="nav-link active" th:href="@{'/to-exit'}">Выйти</a>
+        </li>
+      </ul>
+    </div>
+    <!-- Modal -->
+    <div class="modal fade" id="balancemodal" tabindex="-1" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="exampleModalLabel">Установите баланс карты</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="input-group mb-3">
+              <input class="form-control" id="balancevalue">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary" onclick="setbalance()">Set</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script type="text/javascript">
+    function setbalance(){
+      const request = new XMLHttpRequest();
+      request.open("POST", "/setbalance", true);
+      request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+      request.send(balancevalue.value);
+      request.onreadystatechange = function () {
+        if (request.readyState === request.DONE) {
+          if (request.status === 200) {
+            location.reload()
+          }
+        }
+      }
+    }
+  </script>
+</nav>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="main_layout.html">
+<head>
+    <meta charset="UTF-8">
+    <title>Калькуляция</title>
+    <link rel="stylesheet" type="text/css" href="/css/bootstrap.css">
+</head>
+<body>
+<div layout:fragment="main_content">
+    <div class="container">
+        <h3 class="text-light">Калькуляция</h3>
+        <div class="input-group mb-3">
+            <input type="text" id="novoeBlyudo" class="form-control" placeholder="Новое блюдо">
+            <select class="form-select" id="categoriyaBlyuda">
+            </select>
+            <a type="button" id="dobavit" class="btn btn-outline-primary">Добавить</a>
+        </div>
+        <div class="input-group mb-3">
+            <select class="form-select" id="nazvanieBlyuda">
+            </select>
+            <a type="button" id="sohranit" class="btn btn-outline-primary">Сохранить</a>
+        </div>
+        <div style="height: 500px; overflow: auto">
+            <table class="table text-light">
+                <thead>
+                <tr>
+                    <th scope="col" class="col-11">Продукт</th>
+                    <th scope="col" class="col-1">Количество гр.</th>
+                </tr>
+                </thead>
+                <tbody id="table">
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script type="text/javascript">
+        getProducts()
+        loadBlyuda()
+        loadCategoryi()
+
+        function loadBlyuda() {
+            nazvanieBlyuda.innerHTML = ""
+            const request = new XMLHttpRequest();
+            request.open("GET", "/blyuda/spisok", true);
+            request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+            request.send();
+            request.onreadystatechange = function () {
+                if (request.readyState === request.DONE) {
+                    if (request.status === 200) {
+                        nazvanieBlyuda.add(new Option(""))
+                        let reply = JSON.parse(request.responseText)
+                        reply.forEach(option => nazvanieBlyuda.add(new Option(option)))
+                    }
+                }
+            }
+        }
+
+        function loadCategoryi() {
+            categoriyaBlyuda.innerHTML = ""
+            const request = new XMLHttpRequest();
+            request.open("GET", "/categoryi/spisok", true);
+            request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+            request.send();
+            request.onreadystatechange = function () {
+                if (request.readyState === request.DONE) {
+                    if (request.status === 200) {
+                        categoriyaBlyuda.add(new Option(""))
+                        let reply = JSON.parse(request.responseText)
+                        reply.forEach(option => categoriyaBlyuda.add(new Option(option)))
+                    }
+                }
+            }
+        }
+
+        function getProducts() {
+            const request = new XMLHttpRequest();
+            request.open("POST", "/sklad/getproducts", true);
+            request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+            request.send("1900-01-01");
+            request.onreadystatechange = function () {
+                if (request.readyState === request.DONE) {
+                    if (request.status === 200) {
+                        let reply = JSON.parse(request.responseText)
+                        table.innerHTML = ""
+                        reply.forEach((e) => {
+                            table.innerHTML += `<tr><td> ${e.productName} </td>
+                                                <td><input type="number" step="0.01" value=0></td></tr>`
+                        })
+                    }
+                }
+            }
+        }
+
+        document.getElementById("dobavit").addEventListener('click', function () {
+            let calculyaciya = "{\"nazvanieBlyuda\":" + "\"" + novoeBlyudo.value + "\","
+                + "\"categoriyaBlyuda\":" + "\"" + categoriyaBlyuda.value + "\","
+                + "\"sostavBlyuda\":["
+            document.getElementById("table").querySelectorAll('tr').forEach((row) => {
+                if (row.cells[1].getElementsByTagName('input')[0].value == "") {
+                    row.cells[1].getElementsByTagName('input')[0].value = 0
+                }
+                calculyaciya += "{"
+                    + "\"nazvanieProducta\":" + "\"" + row.cells[0].innerText + "\"" + ","
+                    + "\"kolichestvoProducta\":" + row.cells[1].getElementsByTagName('input')[0].value
+                    + "},"
+
+            })
+            calculyaciya = calculyaciya.slice(0, -1)
+            calculyaciya += "]}"
+            const request = new XMLHttpRequest();
+            request.open("POST", "/blyudo/novoeBlyudo", true);
+            request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+            request.send(calculyaciya);
+            request.onreadystatechange = function () {
+                if (request.readyState === request.DONE) {
+                    if (request.status === 200) {
+                        alert(request.responseText)
+                        location.reload()
+                    }
+                }
+            }
+        })
+        document.getElementById("sohranit").addEventListener('click', function () {
+            let calculyaciya = "{\"nazvanieBlyuda\":" + "\"" + nazvanieBlyuda.value + "\","
+                + "\"sostavBlyuda\":["
+            document.getElementById("table").querySelectorAll('tr').forEach((row) => {
+                if (row.cells[1].getElementsByTagName('input')[0].value == "") {
+                    row.cells[1].getElementsByTagName('input')[0].value = 0
+                }
+                calculyaciya += "{"
+                    + "\"nazvanieProducta\":" + "\"" + row.cells[0].innerText + "\"" + ","
+                    + "\"kolichestvoProducta\":" + row.cells[1].getElementsByTagName('input')[0].value
+                    + "},"
+
+            })
+            calculyaciya = calculyaciya.slice(0, -1)
+            calculyaciya += "]}"
+            const request = new XMLHttpRequest();
+            request.open("POST", "/blyudo/sohranit", true);
+            request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+            request.send(calculyaciya);
+            request.onreadystatechange = function () {
+                if (request.readyState === request.DONE) {
+                    if (request.status === 200) {
+                        alert(request.responseText)
+                        location.reload()
+                    }
+                }
+            }
+        })
+        document.getElementById("nazvanieBlyuda").addEventListener('input', function () {
+            const request = new XMLHttpRequest();
+            request.open("POST", "/blyudo/naiti", true);
+            request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+            request.send(nazvanieBlyuda.value);
+            request.onreadystatechange = function () {
+                if (request.readyState === request.DONE) {
+                    if (request.status === 200) {
+                        document.getElementById("table").querySelectorAll('tr').forEach((row) => {
+                            row.cells[1].getElementsByTagName('input')[0].value = 0
+                        })
+                        let blyudo = JSON.parse(request.responseText)
+                        blyudo.sostavBlyuda.forEach((sostav) => {
+                            document.getElementById("table").querySelectorAll('tr').forEach((row) => {
+                                if (row.cells[0].innerText == sostav.nazvanieProducta) {
+                                    row.cells[1].getElementsByTagName('input')[0].value = sostav.kolichestvoProducta
+                                }
+                            })
+                        })
+                    }
+                }
+            }
+        })
+    </script>
+</div>
+</body>
+</html>

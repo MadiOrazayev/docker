@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="main_layout.html">
+<head>
+    <meta charset="UTF-8">
+    <title>Продажи</title>
+    <link rel="stylesheet" type="text/css" href="/css/bootstrap.css">
+</head>
+<body>
+<div layout:fragment="main_content">
+    <div class="container">
+        <div class="row">
+            <div class="input-group mb-3">
+                <input id="card_number" type="number" class="form-control col-7" placeholder="Номер карты">
+                <a type="button" id="addcard" class="btn btn-outline-primary col-1">Add</a>
+                <a type="button" id="activatecard" class="btn btn-outline-success col-1">Activate</a>
+                <a type="button" id="deactivatecard" class="btn btn-outline-danger col-2">Deactivate</a>
+                <a type="button" class="btn btn-outline-warning col-1" data-bs-toggle="modal"
+                   data-bs-target="#assign">Assign</a>
+
+                <!-- Modal -->
+                <div class="modal fade" id="assign" tabindex="-1" aria-labelledby="exampleModalLabel"
+                     aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h1 class="modal-title fs-5" id="exampleModalLabel">Assign card</h1>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="input-group mb-3">
+                                    <select class="form-select" id="cardNumberSelect">
+                                    </select>
+                                </div>
+                                <div class="input-group mb-3">
+                                    <select class="form-select" id="clientNameSelect">
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-primary" onclick="assign()">Assign</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="input-group mb-3">
+                <input id="client_name" type="text" class="form-control col-7" placeholder="Имя клиента">
+                <a type="button" id="addclient" class="btn btn-outline-primary col-1">Add</a>
+                <a type="button" id="activateclient" class="btn btn-outline-success col-1">Activate</a>
+                <a type="button" id="deactivateclient" class="btn btn-outline-danger col-2">Deactivate</a>
+                <a type="button" id="unassign" class="btn btn-outline-warning col-1">Unassign</a>
+            </div>
+        </div>
+        <div class="d-flex flex-row mb-1">
+            <h6 class="text-success">Баланс:</h6>
+            <h6 class="text-success ms-1" id="balance"></h6>
+        </div>
+        <div class="d-flex flex-row mb-2">
+            <h6 class="text-primary">К оплате:</h6>
+            <h6 class="text-primary ms-1" id="koplate"></h6>
+        </div>
+        <div class="row d-inline-flex">
+            <div class="input-group mb-3 d-inline-flex">
+                <a type="button" id="pay" class="btn btn-outline-success col-3 me-3">Оплатить</a>
+                <span class="input-group-text">С карты</span>
+                <input id="card" type="text" class="form-control me-3" aria-describedby="inputGroup-sizing-sm">
+                <span class="input-group-text">Каспи/Наличные</span>
+                <input id="kaspi" type="text" class="form-control" aria-describedby="inputGroup-sizing-sm">
+            </div>
+        </div>
+        <div class="d-flex">
+            <div id="menu" class="col-6 mt-3"></div>
+            <div class="col-6 mt-3">
+                <table class="table col-6 mt-3">
+                    <thead class="table text-light">
+                    <tr>
+                        <th scope="col" style="width:80%">Название</th>
+                        <th scope="col">Цена</th>
+                        <th scope="col">Количество</th>
+                    </tr>
+                    </thead>
+                    <tbody class="table text-light" id="selected">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript">
+
+        var categories = []
+        loadCategories()
+
+        function loadCategories() {
+            const request = new XMLHttpRequest();
+            request.open("GET", "/categoryi/spisok", true);
+            request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+            request.send();
+            request.onreadystatechange = function () {
+                if (request.readyState === request.DONE) {
+                    if (request.status === 200) {
+                        let reply = JSON.parse(request.responseText)
+                        reply.forEach(option => categories.push(option))
+                    }
+                }
+            }
+        }
+
+        loadMenu()
+
+        function loadMenu() {
+            const request = new XMLHttpRequest();
+            request.open("POST", "/getmenufact", true);
+            request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+            request.send("1900-01-01")
+            request.onreadystatechange = function () {
+                if (request.readyState === request.DONE) {
+                    if (request.status === 200) {
+                        let reply = JSON.parse(request.responseText)
+                        let i = 0
+                        menu.innerHTML = "<div class=\"btn-group \" role=\"group\" aria-label=\"Basic checkbox toggle button group\">\n"
+                        categories.forEach(category => {
+                            menu.innerHTML += "<div class=\"row\">"
+                            reply.forEach((option) => {
+                                if (category == option.itemCategory) {
+                                    menu.innerHTML += `<input onclick=\"menuitems(this.id)\" type=\"checkbox\" value="${option.itemPrice}"
+                                                        class=\"btn-check\" id=\"${i}\" autocomplete=\"off\">\n`
+                                        + `<label style="width: 30%" class=\"btn btn-outline-primary\" for=\"${i}\">${option.itemName}</label>`
+                                    i++
+                                }
+                            })
+                            menu.innerHTML += "</div>"
+                        })
+                        menu.innerHTML += "</div>"
+                    }
+                }
+            }
+        }
+
+        var GJcardStatus, GJclientStatus
+
+        function color(JcardStatus, JclientStatus) {
+            GJclientStatus = JclientStatus
+            GJcardStatus = JcardStatus
+            if (card_number.value == "") {
+                card_number.style.backgroundColor = "white"
+            } else if (JcardStatus == "active") {
+                card_number.style.backgroundColor = "green";
+            } else if (JcardStatus == "deactive") {
+                card_number.style.backgroundColor = "red";
+            } else if (JcardStatus == "") {
+                card_number.style.backgroundColor = "white";
+            }
+
+            if (client_name.value == "") {
+                client_name.style.backgroundColor = "white"
+            } else if (JclientStatus == "active") {
+                client_name.style.backgroundColor = "green";
+            } else if (JclientStatus == "deactive") {
+                client_name.style.backgroundColor = "red";
+            } else if (JclientStatus == "") {
+                client_name.style.backgroundColor = "white"
+            }
+        }
+
+        document.getElementById("card_number").addEventListener('keyup', checkCard)
+
+        function checkCard() {
+            if (card_number.value != "" && card_number.value != 0) {
+                const request = new XMLHttpRequest();
+                request.open("POST", "/cards/getclient", true);
+                request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+                request.send(parseInt(card_number.value));
+                request.onreadystatechange = function () {
+                    if (request.readyState === request.DONE) {
+                        if (request.status === 200) {
+                            let reply = JSON.parse(request.responseText)
+                            client_name.value = reply.clientName
+                            getBalance()
+                            color(reply.cardStatus, reply.clientStatus)
+                        }
+                    }
+                }
+            } else {
+                client_name.value = ""
+                balance.innerText = ""
+                color("", "")
+                amount()
+            }
+
+        }
+
+        function updateCard(url) {
+            if (card_number.value > 0) {
+                const request = new XMLHttpRequest();
+                request.open("POST", url, true);
+                request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+                request.send(parseInt(card_number.value));
+                request.onreadystatechange = function () {
+                    if (request.readyState === request.DONE) {
+                        if (request.status === 200) {
+                            checkCard()
+                        }
+                    }
+                }
+            } else {
+                alert("Wrong card number")
+            }
+        }
+
+        document.getElementById("addcard").addEventListener('click', function () {
+            updateCard("/cards/addcard")
+        })
+        document.getElementById("activatecard").addEventListener('click', function () {
+            updateCard("/cards/activatecard")
+        })
+        document.getElementById("deactivatecard").addEventListener('click', function () {
+            updateCard("/cards/deactivatecard")
+        })
+
+
+        document.getElementById("client_name").addEventListener('keyup', checkClient)
+
+        function checkClient() {
+            if (client_name.value != "") {
+                const request = new XMLHttpRequest();
+                request.open("POST", "/clients/getcard", true);
+                request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+                request.send(client_name.value);
+                request.onreadystatechange = function () {
+                    if (request.readyState === request.DONE) {
+                        if (request.status === 200) {
+                            let reply = JSON.parse(request.responseText)
+                            card_number.value = reply.cardNumber
+                            if (card_number.value == 0) {
+                                card_number.value = ""
+                            }
+                            if (reply.clientStatus != "") {
+                                getBalance()
+                            }else{
+                                balance.innerText = ""
+                            }
+                            color(reply.cardStatus, reply.clientStatus)
+                            amount()
+                        }
+                    }
+                }
+            } else {
+                card_number.value = ""
+                balance.innerText = ""
+                color("", "")
+                amount()
+            }
+
+        }
+
+        function updateClient(url) {
+            const request = new XMLHttpRequest();
+            request.open("POST", url, true);
+            request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+            request.send(client_name.value);
+            request.onreadystatechange = function () {
+                if (request.readyState === request.DONE) {
+                    if (request.status === 200) {
+                        checkClient()
+                    }
+                }
+            }
+        }
+
+        document.getElementById("addclient").addEventListener('click', function () {
+            updateClient("/clients/addclient")
+        })
+        document.getElementById("activateclient").addEventListener('click', function () {
+            updateClient("/clients/activateclient")
+        })
+        document.getElementById("deactivateclient").addEventListener('click', function () {
+            updateClient("/clients/deactivateclient")
+        })
+
+        document.getElementById("unassign").addEventListener('click', function () {
+            if (card_number.value != "") {
+                if (client_name.value != "") {
+                    const request = new XMLHttpRequest();
+                    request.open("POST", "/clients/unassigncard", true);
+                    request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+                    request.send(client_name.value);
+                    request.onreadystatechange = function () {
+                        if (request.readyState === request.DONE) {
+                            if (request.status === 200) {
+                                card_number.value = ""
+                                card_number.style.backgroundColor = "white"
+                                alert("card unassigned")
+                            }
+                        }
+                    }
+                }
+            }
+        })
+        document.getElementById("assign").addEventListener('hide.bs.modal', function () {
+            clientNameSelect.innerHTML = ""
+            cardNumberSelect.innerHTML = ""
+        })
+        document.getElementById("assign").addEventListener('shown.bs.modal', function () {
+            loadCards()
+            loadClients()
+        })
+
+        function loadCards() {
+            const request = new XMLHttpRequest();
+            request.open("GET", "/cards/getavailablecards", true);
+            request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+            request.send();
+            request.onreadystatechange = function () {
+                if (request.readyState === request.DONE) {
+                    if (request.status === 200) {
+                        let reply = JSON.parse(request.responseText)
+                        reply.forEach(option => cardNumberSelect.add(new Option(option)))
+                    }
+                }
+            }
+        }
+
+        function loadClients() {
+            const request = new XMLHttpRequest();
+            request.open("GET", "/clients/getavailableclients", true);
+            request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+            request.send();
+            request.onreadystatechange = function () {
+                if (request.readyState === request.DONE) {
+                    if (request.status === 200) {
+                        let reply = JSON.parse(request.responseText)
+                        reply.forEach(option => clientNameSelect.add(new Option(option)))
+                    }
+                }
+            }
+        }
+
+        function assign() {
+            if (cardNumberSelect.value != "") {
+                if (clientNameSelect.value != "") {
+                    let ask = JSON.stringify({
+                        "cardNumber": cardNumberSelect.value,
+                        "clientName": clientNameSelect.value
+                    })
+                    const request = new XMLHttpRequest();
+                    request.open("POST", "/clients/assigncard", true);
+                    request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+                    request.send(ask);
+                    request.onreadystatechange = function () {
+                        if (request.readyState === request.DONE) {
+                            if (request.status === 200) {
+                                clientNameSelect.innerHTML = ""
+                                cardNumberSelect.innerHTML = ""
+                                loadCards()
+                                loadClients()
+                                alert("card assigned")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        document.getElementById("pay").addEventListener('click', function () {
+            if (client_name.value != "" && card_number.value != "") {
+                if (GJclientStatus == "active" && GJcardStatus == "active") {
+                    if (kaspi.value != "" && card.value != "") {
+                        if (kaspi.value + card.value != 0) {
+                            const request = new XMLHttpRequest();
+                            request.open("POST", "/saleshistory/save", true);
+                            request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+                            let blyuda = []
+                            document.getElementById("selected").querySelectorAll('tr').forEach((row) => {
+                                let blyudo = {
+                                    "blyudoName": row.cells[0].innerText,
+                                    "price": row.cells[1].innerText,
+                                    "porciyi": row.cells[2].getElementsByTagName('input')[0].value
+                                }
+                                blyuda.push(blyudo)
+                            })
+                            let ask = {
+                                "clientName": client_name.value,
+                                "rev_card": card.value,
+                                "rev_kaspi_cash": kaspi.value,
+                                "blyuda": blyuda
+                            }
+                            request.send(JSON.stringify(ask))
+                            request.onreadystatechange = function () {
+                                if (request.readyState === request.DONE) {
+                                    if (request.status === 200) {
+                                        alert(request.responseText)
+                                        getBalance()
+                                        location.reload()
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        })
+
+        function getBalance() {
+            const request = new XMLHttpRequest();
+            request.open("POST", "/getbalance", true);
+            request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+            request.send(client_name.value);
+            request.onreadystatechange = function () {
+                if (request.readyState === request.DONE) {
+                    if (request.status === 200) {
+                        document.getElementById("balance").innerText = request.responseText
+                        amount()
+                    }
+                }
+            }
+        }
+
+        var cheq = []
+
+        function menuitems(id) {
+            let l = document.querySelector('label[for="' + id + '"]').textContent
+            let p = document.getElementById(id).value
+            let cheqitem = {"name": l, "amount": 1, "price": p}
+            if (document.getElementById(id).checked == true) {
+                cheq.push(cheqitem)
+            } else {
+                cheq = cheq.filter(data => data.name != cheqitem.name);
+            }
+            selected.innerHTML = ""
+            cheq.forEach(c => {
+                selected.innerHTML += `<tr>
+                                        <td>${c.name}</td>
+                                        <td>${c.price}</td>
+                                        <td><input onChange="amount()" class="py-0 text-light" style="width: 90%" type="number" min="0"
+                                        value="${c.amount}"></td>
+                                        </tr>`
+            })
+            amount()
+        }
+
+        function amount() {
+            cheq.splice(0, cheq.length);
+            let opl = 0
+            document.getElementById("selected").querySelectorAll('tr').forEach((row) => {
+                let amount = row.cells[2].getElementsByTagName('input')[0].value
+                if (amount < 0) {
+                    amount = 0
+                    amount = row.cells[2].getElementsByTagName('input')[0].value = 0
+                }
+                opl += parseInt(amount) * parseInt(row.cells[1].innerText)
+                let cheqitem = {"name": row.cells[0].innerText, "amount": amount, "price": row.cells[1].innerText}
+                cheq.push(cheqitem)
+            })
+            koplate.innerText = opl
+            if (balance.innerText != "") {
+                if (parseInt(balance.innerText) >= opl) {
+                    card.value = opl
+                    kaspi.value = 0
+                } else {
+                    card.value = balance.innerText
+                    kaspi.value = opl - parseInt(balance.innerText)
+                }
+            } else {
+                card.value = 0
+                kaspi.value = 0
+            }
+        }
+        document.getElementById("card").addEventListener('input', function () {
+            if(balance.innerText==""){
+                card.value = 0
+                kaspi.value = 0
+            }else{
+                if(card.value==""){
+                    card.value=0
+                }
+                if(parseInt(card.value)<=parseInt(balance.innerText)){
+                    kaspi.value=parseInt(koplate.innerText)-parseInt(card.value)
+                }else{
+                    amount()
+                }
+            }
+        })
+    </script>
+</div>
+</body>
+</html>
