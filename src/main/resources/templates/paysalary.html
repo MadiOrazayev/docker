@@ -11,6 +11,47 @@
     <div class="container">
         <h3 class="text-light">Добро пожаловать <span th:text="${#authentication.principal.sotrudnikName}"
                                                       id="sotrudnik"></span></h3>
+
+        <p><a class="link-opacity-100" href="#" data-bs-toggle="modal" data-bs-target="#requestmodal"
+              aria-current="page">Редактировать сотрудника</a></p>
+
+        <!-- Modal add employee-->
+        <div class="modal fade" id="requestmodal" tabindex="-1" aria-labelledby="exampleModalLabel"
+             aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5">Редактировать сотрудника</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="input-group mb-3">
+                            <span class="input-group-text" id="label0">Имя</span>
+                            <input class="form-control" type="text" id="employee" aria-describedby="label0">
+                        </div>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text" id="label1">Должность</span>
+                            <input class="form-control" type="text" id="position" aria-describedby="label1">
+                        </div>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text" id="label2">Роль</span>
+                            <select class="form-select" id="role" aria-describedby="label2"></select>
+                        </div>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text" id="label3">Пароль</span>
+                            <input class="form-control" type="text" id="password" aria-describedby="label3">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary" onclick="addSotrudnik()">Сохранить</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
         <p><select class="form-select" id="sotrudnikoplata">
         </select></p>
 
@@ -47,10 +88,32 @@
 
         <script type="text/javascript">
             getSotrudnikList()
+            getRoleList()
             document.getElementById("sotrudnikoplata").addEventListener('input', function () {
                 getPayRequests()
                 getSotrudnikPayments()
             })
+
+            function addSotrudnik(){
+                const request=new XMLHttpRequest();
+                request.open("POST", "/addsotrudnik",true);
+                request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+                let sotrudnik = {
+                    "sotrudnikname": employee.value,
+                    "sotrudnikposition": position.value,
+                    "sotrudnikrole": role.value,
+                    "password": password.value
+                }
+                request.send(JSON.stringify(sotrudnik))
+                request.onreadystatechange = function () {
+                    if (request.readyState === request.DONE) {
+                        if (request.status === 200) {
+                            alert(request.responseText)
+                            location.reload()
+                        }
+                    }
+                }
+            }
 
             function pay() {
                 const request = new XMLHttpRequest();
@@ -102,6 +165,22 @@
                             sotrudnikoplata.add(new Option(""))
                             let reply = JSON.parse(request.responseText)
                             reply.forEach(option => sotrudnikoplata.add(new Option(option.sotrudnikName)))
+                        }
+                    }
+                }
+            }
+            function getRoleList() {
+                role.innerHTML=""
+                const request = new XMLHttpRequest();
+                request.open("GET", "/getrolelist", true);
+                request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+                request.send();
+                request.onreadystatechange = function () {
+                    if (request.readyState === request.DONE) {
+                        if (request.status === 200) {
+                            role.add(new Option(""))
+                            let reply = JSON.parse(request.responseText)
+                            reply.forEach(option => role.add(new Option(option.role)))
                         }
                     }
                 }

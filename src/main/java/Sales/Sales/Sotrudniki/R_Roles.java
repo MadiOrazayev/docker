@@ -7,4 +7,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 @Transactional
 public interface R_Roles extends JpaRepository<M_Roles,Long> {
+    M_Roles getByRole(String sotrudnikRole);
 }

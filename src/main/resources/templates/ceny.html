@@ -40,7 +40,7 @@
                         table.innerHTML = ""
                         ceny.forEach((blyudo) => {
                             table.innerHTML += `<tr><td> ${blyudo.nazvanieBlyuda} </td>
-                                                <td> ${blyudo.sebestoimostBlyuda} </td>
+                                                <td> ${Math.round(blyudo.sebestoimostBlyuda)} </td>
                                                 <td><input type="number" value=${blyudo.cenaBlyuda}></td>`
 
                         })

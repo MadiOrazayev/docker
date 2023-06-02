@@ -51,10 +51,10 @@
                             let deficit = e.productLeft - e.productDeficit
                             if(deficit>=0){deficit=0}
                             table.innerHTML += `<tr><td> ${e.productName} </td>
-                                                <td> ${e.productLeft} </td>
-                                                <td> ${e.productDeficit} </td>
-                                                <td> ${deficit} </td>
-                                                <td> ${e.productAvPrice} </td></tr>`
+                                                <td> ${Math.round(e.productLeft)} </td>
+                                                <td> ${Math.round(e.productDeficit)} </td>
+                                                <td> ${Math.round(deficit)} </td>
+                                                <td> ${Math.round(e.productAvPrice)} </td></tr>`
 
                         })
                     }
