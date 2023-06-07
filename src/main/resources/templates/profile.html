@@ -11,8 +11,8 @@
     <div class="container">
         <h3 class="text-light">Добро пожаловать <span th:text="${#authentication.principal.sotrudnikName}"
                                                       id="sotrudnik"></span></h3>
-        <p><a class="link-opacity-100" href="#" data-bs-toggle="modal" data-bs-target="#requestmodal"
-              aria-current="page">Запросить оплату</a></p>
+        <p><img src="/images/oplata.gif" class="btn btn-light" style="height: 150px; width: 150px;" data-bs-toggle="modal" data-bs-target="#requestmodal"
+                   aria-current="page">Запросить оплату</img></p>
         <h6 class="text-light">Должность: <span th:text="${#authentication.principal.sotrudnikPosition}"></span></h6>
 
         <h6 class="text-light">Телефон: <span id="Contact"></span>
