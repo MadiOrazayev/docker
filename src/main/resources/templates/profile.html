@@ -3,33 +3,33 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="main_layout.html">
 <head>
     <meta charset="UTF-8">
-    <title>Меню</title>
+    <title>Профиль</title>
     <link rel="stylesheet" type="text/css" href="/css/bootstrap.css">
 </head>
 <body>
 <div layout:fragment="main_content">
     <div class="container">
-        <h3 class="text-light">Добро пожаловать <span th:text="${#authentication.principal.sotrudnikName}"
+        <h3 class="text-dark">Добро пожаловать <span th:text="${#authentication.principal.sotrudnikName}"
                                                       id="sotrudnik"></span></h3>
-        <p><img src="/static/images/oplata.gif" class="btn btn-light" style="height: 150px; width: 150px;" data-bs-toggle="modal" data-bs-target="#requestmodal"
-                   aria-current="page">Запросить оплату</img></p>
-        <h6 class="text-light">Должность: <span th:text="${#authentication.principal.sotrudnikPosition}"></span></h6>
+        <p><img src="/images/oplata.gif" class="btn btn-light" style="height: 150px; width: 150px;" data-bs-toggle="modal" data-bs-target="#requestmodal"
+                   aria-current="page"></img></p>
+        <h6 class="text-dark">Должность: <span th:text="${#authentication.principal.sotrudnikPosition}"></span></h6>
 
-        <h6 class="text-light">Телефон: <span id="Contact"></span>
+        <h6 class="text-dark">Телефон: <span id="Contact"></span>
             <a class="link-opacity-100" href="#" data-bs-toggle="modal" data-bs-target="#detailsmodal"
                aria-current="page">изменить</a></h6>
 
-        <h6 class="text-light">Номер Каспи: <span id="sotrudnikKaspi"></span>
+        <h6 class="text-dark">Номер Каспи: <span id="sotrudnikKaspi"></span>
             <a class="link-opacity-100" href="#" data-bs-toggle="modal" data-bs-target="#detailsmodal"
                aria-current="page">изменить</a></h6>
 
-        <h6 class="text-light">Оплачено зарплата: <span id="sotrudnikPayedBasic"></span></h6>
-        <h6 class="text-light">Оплачено дополнительно: <span id="sotrudnikPayedExtra"></span></h6>
-        <h6 class="text-light">К оплате зарплата: <span id="sotrudnikToBePayedBasic"></span></h6>
-        <h6 class="text-light">К оплате дополнительно: <span id="sotrudnikToBePayedExtra"></span></h6>
+        <h6 class="text-dark">Оплачено зарплата: <span id="sotrudnikPayedBasic"></span></h6>
+        <h6 class="text-dark">Оплачено дополнительно: <span id="sotrudnikPayedExtra"></span></h6>
+        <h6 class="text-dark">К оплате зарплата: <span id="sotrudnikToBePayedBasic"></span></h6>
+        <h6 class="text-dark">К оплате дополнительно: <span id="sotrudnikToBePayedExtra"></span></h6>
 
         <div style="height: 500px; overflow: auto">
-            <table class="table text-light">
+            <table class="table text-dark">
                 <thead>
                 <tr>
                     <th scope="col" class="col-4">Дата</th>

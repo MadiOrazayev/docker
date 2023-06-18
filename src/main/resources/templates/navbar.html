@@ -1,12 +1,12 @@
 <html lang="en"
       xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
-<nav class="navbar navbar-expand-lg bg-dark" data-bs-theme="dark">
+<nav class="navbar navbar-expand-lg bg-primary-subtle" data-bs-theme="primary">
   <div class="container-fluid">
     <a class="navbar-brand" th:href="@{'/'}">TCG</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
-    <div class="collapse navbar-collapse" id="navbarSupportedContent" data-bs-theme="dark">
+    <div class="collapse navbar-collapse" id="navbarSupportedContent" data-bs-theme="primary">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <li class="nav-item">
           <a sec:authorize="isAuthenticated()" class="nav-link active" th:href="@{'/profile'}">
@@ -56,7 +56,7 @@
       </ul>
     </div>
     <!-- Modal -->
-    <div class="modal fade" id="balancemodal" tabindex="-1" aria-labelledby="exampleModalLabel"
+    <div class="modal" id="balancemodal" tabindex="-1" aria-labelledby="exampleModalLabel"
          aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">

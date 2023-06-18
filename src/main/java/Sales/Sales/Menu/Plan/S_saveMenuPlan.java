@@ -24,6 +24,7 @@ public class S_saveMenuPlan {
             M_menuPlan menuPlanItem = RmenuPlan.getByBlyudoAndDate(blyudo,DTOmenuItem.date);
             if(DTOmenuItem.kolichestvoPorciy==0){
                 RmenuPlan.delete(menuPlanItem);
+                date=DTOmenuItem.date;
             }else{
                 menuPlanItem.setKolichestvoPorciy(DTOmenuItem.kolichestvoPorciy);
                 RmenuPlan.save(menuPlanItem);

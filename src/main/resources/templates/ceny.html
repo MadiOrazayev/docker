@@ -3,18 +3,15 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="main_layout.html">
 <head>
     <meta charset="UTF-8">
-    <title>Калькуляция</title>
+    <title>Цены</title>
     <link rel="stylesheet" type="text/css" href="/css/bootstrap.css">
 </head>
 <body onload="getPrices()">
 <div layout:fragment="main_content">
     <div class="container">
-        <h3 class="text-light">Цены</h3>
-        <div class="input-group mb-3">
-            <a type="button" id="save" class="btn btn-outline-primary">Сохранить</a>
-        </div>
+        <h3 class="text-dark mb-3">Цены</h3>
         <div style="height: 500px; overflow: auto">
-            <table class="table text-light">
+            <table class="table text-dark">
                 <thead>
                 <tr>
                     <th scope="col" class="col-10">Блюдо</th>
@@ -25,6 +22,9 @@
                 <tbody id="table">
                 </tbody>
             </table>
+        </div>
+        <div class="input-group mb-3">
+            <a type="button" id="save" class="btn btn-outline-primary">Сохранить</a>
         </div>
     </div>
     <script type="text/javascript">
